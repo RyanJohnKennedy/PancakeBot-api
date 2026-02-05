@@ -1,5 +1,5 @@
 using Microsoft.Extensions.Options;
-using PancakeBot.Api.Options;
+using PancakeBot.Api.Option;
 
 namespace PancakeBot.Api.Middleware;
 

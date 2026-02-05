@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 
-namespace PancakeBot.Api.Controllers;
+namespace PancakeBot.Api.Controller;
 
 [ApiController]
 [Route("api/health")]

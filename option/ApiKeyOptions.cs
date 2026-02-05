@@ -1,4 +1,4 @@
-namespace PancakeBot.Api.Options;
+namespace PancakeBot.Api.Option;
 
 public sealed class ApiKeyOptions
 {

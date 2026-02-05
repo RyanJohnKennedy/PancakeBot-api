@@ -1,6 +1,10 @@
+using Microsoft.Extensions.Options;
 using PancakeBot.Api.Middleware;
-using PancakeBot.Api.Options;
+using PancakeBot.Api.Option;
 using Microsoft.OpenApi.Models;
+using PancakeBot.Api.Client;
+using PancakeBot.Api.Handler;
+using PancakeBot.Api.Service;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,6 +41,40 @@ builder.Services.AddSwaggerGen(c =>
         { securityScheme, Array.Empty<string>() }
     });
 });
+
+builder.Services.Configure<TrackmaniaOptions>(
+    builder.Configuration.GetSection("Trackmania")
+);
+
+builder.Services.AddHttpClient<TrackmaniaAuthService>();
+
+// CORE API CLIENT
+builder.Services.AddHttpClient<ITrackmaniaCoreClient, TrackmaniaCoreClient>(c =>
+{
+    c.BaseAddress = new Uri(
+        builder.Configuration["Trackmania:CoreUrl"]);
+})
+.AddHttpMessageHandler(sp =>
+    new TrackmaniaAuthHandler(
+        sp.GetRequiredService<TrackmaniaAuthService>(),
+        sp.GetRequiredService<IOptions<TrackmaniaOptions>>(),
+        "NadeoServices"
+    )
+);
+
+// LIVE API CLIENT
+builder.Services.AddHttpClient<ITrackmaniaLiveClient, TrackmaniaLiveClient>(c =>
+{
+    c.BaseAddress = new Uri(
+        builder.Configuration["Trackmania:LiveUrl"]);
+})
+.AddHttpMessageHandler(sp =>
+    new TrackmaniaAuthHandler(
+        sp.GetRequiredService<TrackmaniaAuthService>(),
+        sp.GetRequiredService<IOptions<TrackmaniaOptions>>(),
+        "NadeoLiveServices"
+    )
+);
 
 var app = builder.Build();
 
