@@ -3,6 +3,7 @@ namespace PancakeBot.Api.Client;
 public interface ITrackmaniaLiveClient
 {
     Task<string> GetLeaderboard(string mapId);
+    Task<string> GetTotdMonth();
 }
 
 public class TrackmaniaLiveClient : ITrackmaniaLiveClient
@@ -21,6 +22,16 @@ public class TrackmaniaLiveClient : ITrackmaniaLiveClient
 
         response.EnsureSuccessStatusCode();
 
+        return await response.Content.ReadAsStringAsync();
+    }
+    
+    public async Task<string> GetTotdMonth()
+    {
+        var response = await _http.GetAsync(
+            $"token/campaign/month?length=1");
+        
+        response.EnsureSuccessStatusCode();
+        
         return await response.Content.ReadAsStringAsync();
     }
 }
