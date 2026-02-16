@@ -3,6 +3,7 @@ namespace PancakeBot.Api.Client;
 public interface ITrackmaniaCoreClient
 {
     Task<string> GetMapInfo(string mapId);
+    Task<string> GetZonesInfo();
 }
 
 public class TrackmaniaCoreClient : ITrackmaniaCoreClient
@@ -18,6 +19,16 @@ public class TrackmaniaCoreClient : ITrackmaniaCoreClient
     {
         var response = await _http.GetAsync(
             $"/maps/{mapId}");
+
+        response.EnsureSuccessStatusCode();
+
+        return await response.Content.ReadAsStringAsync();
+    }
+    
+    public async Task<string> GetZonesInfo()
+    {
+        var response = await _http.GetAsync(
+            $"/zones/");
 
         response.EnsureSuccessStatusCode();
 

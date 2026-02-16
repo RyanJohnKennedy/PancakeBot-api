@@ -47,6 +47,7 @@ builder.Services.Configure<TrackmaniaOptions>(
 );
 
 builder.Services.AddHttpClient<TrackmaniaAuthService>();
+builder.Services.AddScoped<TrackmaniaLiveService>();
 
 // CORE API CLIENT
 builder.Services.AddHttpClient<ITrackmaniaCoreClient, TrackmaniaCoreClient>(c =>
