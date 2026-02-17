@@ -10,15 +10,18 @@ public class TrackmaniaController : ControllerBase
 {
     private readonly ITrackmaniaLiveClient _live;
     private readonly ITrackmaniaCoreClient _core;
+    private readonly ITrackmaniaOAuthClient _oauth;
     private readonly TrackmaniaLiveService _liveService;
 
     public TrackmaniaController(
-        ITrackmaniaLiveClient live, 
-        ITrackmaniaCoreClient core, 
+        ITrackmaniaLiveClient live,
+        ITrackmaniaCoreClient core,
+        ITrackmaniaOAuthClient oauth,
         TrackmaniaLiveService liveService)
     {
         _live = live;
         _core = core;
+        _oauth = oauth;
         _liveService = liveService;
     }
     
@@ -46,6 +49,14 @@ public class TrackmaniaController : ControllerBase
         var result =
             await _liveService.GetLeaderboard(totd.MapUid, "3022580b-7e13-11e8-8060-e284abfd2bc4", onlyWorld: false);
 
+        return Ok(result);
+    }
+    
+    [HttpGet("accountName/{accountId}")]
+    public async Task<IActionResult> GetAccountName(string accountId)
+    {
+        var result = await _oauth.GetAccountName(accountId);
+        
         return Ok(result);
     }
 }

@@ -4,6 +4,7 @@ using PancakeBot.Api.Option;
 using Microsoft.OpenApi.Models;
 using PancakeBot.Api.Client;
 using PancakeBot.Api.Handler;
+using PancakeBot.Api.provider;
 using PancakeBot.Api.Service;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -49,6 +50,14 @@ builder.Services.Configure<TrackmaniaOptions>(
 builder.Services.AddHttpClient<TrackmaniaAuthService>();
 builder.Services.AddScoped<TrackmaniaLiveService>();
 
+builder.Services.AddSingleton<TrackmaniaOAuthTokenProvider>();
+
+builder.Services.AddHttpClient<TrackmaniaOAuthService>((c) =>
+{
+    c.BaseAddress = new Uri(
+        builder.Configuration["Trackmania:OAuthUrl"]);
+});
+
 // CORE API CLIENT
 builder.Services.AddHttpClient<ITrackmaniaCoreClient, TrackmaniaCoreClient>(c =>
 {
@@ -76,6 +85,13 @@ builder.Services.AddHttpClient<ITrackmaniaLiveClient, TrackmaniaLiveClient>(c =>
         "NadeoLiveServices"
     )
 );
+
+// OAuth API CLIENT
+builder.Services.AddHttpClient<ITrackmaniaOAuthClient, TrackmaniaOAuthClient>((c) =>
+{
+    c.BaseAddress = new Uri(
+        builder.Configuration["Trackmania:OAuthUrl"]);
+});
 
 var app = builder.Build();
 
