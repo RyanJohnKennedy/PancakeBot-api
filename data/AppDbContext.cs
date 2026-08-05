@@ -9,6 +9,23 @@ public class AppDbContext : DbContext
         : base(options)
     {
     }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Player>(entity =>
+        {
+            entity.HasKey(player => player.AccountId);
+
+            entity.Property(player => player.AccountId)
+                .IsRequired();
+
+            entity.Property(player => player.DisplayName)
+                .IsRequired();
+
+            entity.Property(player => player.CreatedAtUtc)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+        });
+    }
     
     public DbSet<Player> Players => Set<Player>();
 }
