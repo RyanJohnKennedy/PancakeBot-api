@@ -1,8 +1,10 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using PancakeBot.Api.Middleware;
 using PancakeBot.Api.Option;
 using Microsoft.OpenApi.Models;
 using PancakeBot.Api.Client;
+using PancakeBot.Api.data;
 using PancakeBot.Api.Handler;
 using PancakeBot.Api.provider;
 using PancakeBot.Api.Service;
@@ -92,6 +94,9 @@ builder.Services.AddHttpClient<ITrackmaniaOAuthClient, TrackmaniaOAuthClient>((c
     c.BaseAddress = new Uri(
         builder.Configuration["Trackmania:OAuthUrl"]);
 });
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 var app = builder.Build();
 
