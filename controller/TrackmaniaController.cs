@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using PancakeBot.Api.Client;
+using PancakeBot.Api.Option;
 using PancakeBot.Api.Service;
 
 namespace PancakeBot.Api.Controller;
@@ -12,17 +14,20 @@ public class TrackmaniaController : ControllerBase
     private readonly ITrackmaniaCoreClient _core;
     private readonly ITrackmaniaOAuthClient _oauth;
     private readonly TrackmaniaLiveService _liveService;
+    private readonly TrackmaniaOptions _trackmaniaOptions;
 
     public TrackmaniaController(
         ITrackmaniaLiveClient live,
         ITrackmaniaCoreClient core,
         ITrackmaniaOAuthClient oauth,
-        TrackmaniaLiveService liveService)
+        TrackmaniaLiveService liveService,
+        IOptions<TrackmaniaOptions> trackmaniaOptions)
     {
         _live = live;
         _core = core;
         _oauth = oauth;
         _liveService = liveService;
+        _trackmaniaOptions = trackmaniaOptions.Value;
     }
     
     [HttpGet("totd-month")]
@@ -45,9 +50,13 @@ public class TrackmaniaController : ControllerBase
     public async Task<IActionResult> GetTotdLeaderboard()
     {
         var totd = await _liveService.GetPreviousTotd();
+        if (totd is null)
+        {
+            return NotFound("Previous TOTD not found.");
+        }
 
         var result =
-            await _liveService.GetLeaderboard(totd.MapUid, "3022580b-7e13-11e8-8060-e284abfd2bc4", onlyWorld: false);
+            await _liveService.GetLeaderboard(totd.MapUid, _trackmaniaOptions.SouthAfricaZoneId, onlyWorld: false);
 
         return Ok(result);
     }
