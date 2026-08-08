@@ -51,6 +51,7 @@ builder.Services.Configure<TrackmaniaOptions>(
 
 builder.Services.AddHttpClient<TrackmaniaAuthService>();
 builder.Services.AddScoped<TrackmaniaLiveService>();
+builder.Services.AddScoped<IPreviousTotdService, PreviousTotdService>();
 
 builder.Services.AddSingleton<TrackmaniaOAuthTokenProvider>();
 

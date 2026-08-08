@@ -14,6 +14,7 @@ public class TrackmaniaController : ControllerBase
     private readonly ITrackmaniaCoreClient _core;
     private readonly ITrackmaniaOAuthClient _oauth;
     private readonly TrackmaniaLiveService _liveService;
+    private readonly IPreviousTotdService _previousTotdService;
     private readonly TrackmaniaOptions _trackmaniaOptions;
 
     public TrackmaniaController(
@@ -21,12 +22,14 @@ public class TrackmaniaController : ControllerBase
         ITrackmaniaCoreClient core,
         ITrackmaniaOAuthClient oauth,
         TrackmaniaLiveService liveService,
+        IPreviousTotdService previousTotdService,
         IOptions<TrackmaniaOptions> trackmaniaOptions)
     {
         _live = live;
         _core = core;
         _oauth = oauth;
         _liveService = liveService;
+        _previousTotdService = previousTotdService;
         _trackmaniaOptions = trackmaniaOptions.Value;
     }
     
@@ -49,7 +52,7 @@ public class TrackmaniaController : ControllerBase
     [HttpGet("totd")]
     public async Task<IActionResult> GetTotdLeaderboard()
     {
-        var totd = await _liveService.GetPreviousTotd();
+        var totd = await _previousTotdService.GetPreviousTotd();
         if (totd is null)
         {
             return NotFound("Previous TOTD not found.");
