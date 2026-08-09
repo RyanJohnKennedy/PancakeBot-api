@@ -44,13 +44,6 @@ public class TrackmaniaAuthHandler : DelegatingHandler
         request.Headers.Remove("User-Agent");
         request.Headers.Add("User-Agent", _options.UserAgent);
 
-        if (!string.IsNullOrWhiteSpace(_options.Email))
-        {
-            var encodedEmail = Uri.EscapeDataString(_options.Email);
-            request.Headers.Remove("X-User-Email");
-            request.Headers.Add("X-User-Email", encodedEmail);
-        }
-
         return await base.SendAsync(request, cancellationToken);
     }
 }

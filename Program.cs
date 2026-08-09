@@ -45,9 +45,17 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-builder.Services.Configure<TrackmaniaOptions>(
-    builder.Configuration.GetSection("Trackmania")
-);
+builder.Services
+    .AddOptions<TrackmaniaOptions>()
+    .Bind(builder.Configuration.GetSection(TrackmaniaOptions.SectionName))
+    .Validate(o => Uri.TryCreate(o.CoreUrl, UriKind.Absolute, out _), "Trackmania:CoreUrl must be an absolute URL")
+    .Validate(o => Uri.TryCreate(o.LiveUrl, UriKind.Absolute, out _), "Trackmania:LiveUrl must be an absolute URL")
+    .Validate(o => Uri.TryCreate(o.OAuthUrl, UriKind.Absolute, out _), "Trackmania:OAuthUrl must be an absolute URL")
+    .Validate(o => !string.IsNullOrWhiteSpace(o.UserAgent), "Trackmania:UserAgent is required")
+    .Validate(o => o.DailyLeaderboardSize > 0, "Trackmania:DailyLeaderboardSize must be greater than zero")
+    .Validate(o => o.Regions.TryGetValue(o.DefaultRegion, out var zoneId) && !string.IsNullOrWhiteSpace(zoneId),
+        "Trackmania:DefaultRegion must reference a configured region")
+    .ValidateOnStart();
 
 builder.Services.AddHttpClient<TrackmaniaAuthService>();
 builder.Services.AddScoped<TrackmaniaLiveService>();
@@ -58,14 +66,14 @@ builder.Services.AddSingleton<TrackmaniaOAuthTokenProvider>();
 builder.Services.AddHttpClient<TrackmaniaOAuthService>((c) =>
 {
     c.BaseAddress = new Uri(
-        builder.Configuration["Trackmania:OAuthUrl"]);
+        builder.Configuration["Trackmania:OAuthUrl"]!);
 });
 
 // CORE API CLIENT
 builder.Services.AddHttpClient<ITrackmaniaCoreClient, TrackmaniaCoreClient>(c =>
 {
     c.BaseAddress = new Uri(
-        builder.Configuration["Trackmania:CoreUrl"]);
+        builder.Configuration["Trackmania:CoreUrl"]!);
 })
 .AddHttpMessageHandler(sp =>
     new TrackmaniaAuthHandler(
@@ -79,7 +87,7 @@ builder.Services.AddHttpClient<ITrackmaniaCoreClient, TrackmaniaCoreClient>(c =>
 builder.Services.AddHttpClient<ITrackmaniaLiveClient, TrackmaniaLiveClient>(c =>
 {
     c.BaseAddress = new Uri(
-        builder.Configuration["Trackmania:LiveUrl"]);
+        builder.Configuration["Trackmania:LiveUrl"]!);
 })
 .AddHttpMessageHandler(sp =>
     new TrackmaniaAuthHandler(
@@ -93,7 +101,7 @@ builder.Services.AddHttpClient<ITrackmaniaLiveClient, TrackmaniaLiveClient>(c =>
 builder.Services.AddHttpClient<ITrackmaniaOAuthClient, TrackmaniaOAuthClient>((c) =>
 {
     c.BaseAddress = new Uri(
-        builder.Configuration["Trackmania:OAuthUrl"]);
+        builder.Configuration["Trackmania:OAuthUrl"]!);
 });
 
 builder.Services.AddDbContext<AppDbContext>(options =>

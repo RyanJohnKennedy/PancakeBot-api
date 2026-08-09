@@ -35,11 +35,6 @@ public class TrackmaniaAuthService
         request.Headers.Add("Authorization", $"Basic {authValue}");
         request.Headers.Add("User-Agent", _options.UserAgent);
 
-        var encodedEmail = Convert.ToBase64String(
-            Encoding.UTF8.GetBytes(_options.Email)
-        );
-        request.Headers.Add("X-User-Email", encodedEmail);
-
         request.Content = JsonContent.Create(new
         {
             audience

@@ -1,4 +1,6 @@
 using PancakeBot.Api.model;
+using Microsoft.Extensions.Options;
+using PancakeBot.Api.Option;
 
 namespace PancakeBot.Api.Service;
 
@@ -9,15 +11,18 @@ public class TrackmaniaOAuthService
     private string? _accessToken;
     private DateTime _expiresAt;
 
-    private readonly string _clientId = Environment.GetEnvironmentVariable("TRACKMANIA_CLIENT_ID")!;
-    private readonly string _clientSecret = Environment.GetEnvironmentVariable("TRACKMANIA_CLIENT_SECRET")!;
+    private readonly string _clientId;
+    private readonly string _clientSecret;
 
-    public TrackmaniaOAuthService(HttpClient httpClient)
+    public TrackmaniaOAuthService(HttpClient httpClient, IOptions<TrackmaniaOptions> options)
     {
         _httpClient = httpClient;
+        _clientId = options.Value.ClientId;
+        _clientSecret = options.Value.ClientSecret;
 
         if (string.IsNullOrEmpty(_clientId) || string.IsNullOrEmpty(_clientSecret))
-            throw new InvalidOperationException("Trackmania ClientId/ClientSecret not set in environment variables.");
+            throw new InvalidOperationException(
+                "Trackmania:ClientId and Trackmania:ClientSecret must be configured.");
     }
 
     public async Task<string> GetAccessTokenAsync()
