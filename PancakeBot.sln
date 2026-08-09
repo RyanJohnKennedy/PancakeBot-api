@@ -5,6 +5,8 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PancakeBot-api", "PancakeBot-api.csproj", "{6D20A842-6034-44F4-9A32-37E6DF25603C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PancakeBot.Api.Tests", "tests\PancakeBot.Api.Tests\PancakeBot.Api.Tests.csproj", "{6B18FE07-5B49-4C27-872E-618792354A9E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{6D20A842-6034-44F4-9A32-37E6DF25603C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6D20A842-6034-44F4-9A32-37E6DF25603C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6D20A842-6034-44F4-9A32-37E6DF25603C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6B18FE07-5B49-4C27-872E-618792354A9E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6B18FE07-5B49-4C27-872E-618792354A9E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6B18FE07-5B49-4C27-872E-618792354A9E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6B18FE07-5B49-4C27-872E-618792354A9E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

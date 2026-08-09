@@ -57,7 +57,12 @@ builder.Services
         "Trackmania:DefaultRegion must reference a configured region")
     .ValidateOnStart();
 
-builder.Services.AddHttpClient<TrackmaniaAuthService>();
+builder.Services.AddHttpClient("TrackmaniaAuth", c =>
+{
+    c.BaseAddress = new Uri(builder.Configuration["Trackmania:CoreUrl"]!);
+});
+builder.Services.AddSingleton<ITrackmaniaAuthService, TrackmaniaAuthService>();
+builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<TrackmaniaLiveService>();
 builder.Services.AddScoped<IPreviousTotdService, PreviousTotdService>();
 

@@ -13,7 +13,7 @@ public interface ITrackmaniaLiveClient
         bool onlyWorld = true,
         string? zoneId = null);
     
-    Task<TotdMonthResponse?> GetTotdMonth();
+    Task<TotdMonthResponse?> GetTotdMonth(int offset = 0, int length = 2);
 }
 
 public class TrackmaniaLiveClient : ITrackmaniaLiveClient
@@ -58,9 +58,15 @@ public class TrackmaniaLiveClient : ITrackmaniaLiveClient
             .ReadFromJsonAsync<LeaderboardResponse>();
     }
     
-    public async Task<TotdMonthResponse?> GetTotdMonth()
+    public async Task<TotdMonthResponse?> GetTotdMonth(int offset = 0, int length = 2)
     {
-        var response = await _http.GetAsync("token/campaign/month?length=1");
+        if (offset < 0)
+            throw new ArgumentOutOfRangeException(nameof(offset));
+        if (length <= 0)
+            throw new ArgumentOutOfRangeException(nameof(length));
+
+        // Two months includes the final map of the preceding month at month rollover.
+        var response = await _http.GetAsync($"token/campaign/month?offset={offset}&length={length}");
 
         response.EnsureSuccessStatusCode();
 

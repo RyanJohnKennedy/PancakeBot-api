@@ -6,15 +6,12 @@ namespace PancakeBot.Api.Handler;
 
 public class TrackmaniaAuthHandler : DelegatingHandler
 {
-    private readonly TrackmaniaAuthService _auth;
+    private readonly ITrackmaniaAuthService _auth;
     private readonly TrackmaniaOptions _options;
     private readonly string _audience;
 
-    private string? _token;
-    private DateTime _expires;
-
     public TrackmaniaAuthHandler(
-        TrackmaniaAuthService auth,
+        ITrackmaniaAuthService auth,
         IOptions<TrackmaniaOptions> options,
         string audience)
     {
@@ -27,19 +24,10 @@ public class TrackmaniaAuthHandler : DelegatingHandler
         HttpRequestMessage request,
         CancellationToken cancellationToken)
     {
-        if (_token == null || DateTime.UtcNow >= _expires)
-        {
-            var token = await _auth.GetTokenAsync(
-                _audience,
-                _options.Login,
-                _options.Password);
-
-            _token = token.AccessToken;
-            _expires = DateTime.UtcNow.AddSeconds(token.ExpiresIn - 60);
-        }
+        var token = await _auth.GetAccessTokenAsync(_audience, cancellationToken);
 
         request.Headers.Remove("Authorization");
-        request.Headers.Add("Authorization", $"nadeo_v1 t={_token}");
+        request.Headers.Add("Authorization", $"nadeo_v1 t={token}");
 
         request.Headers.Remove("User-Agent");
         request.Headers.Add("User-Agent", _options.UserAgent);
