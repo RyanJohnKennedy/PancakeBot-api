@@ -11,21 +11,18 @@ public class TrackmaniaController : ControllerBase
     private readonly ITrackmaniaLiveClient _live;
     private readonly ITrackmaniaCoreClient _core;
     private readonly ITrackmaniaOAuthClient _oauth;
-    private readonly TrackmaniaLiveService _liveService;
-    private readonly IPreviousTotdService _previousTotdService;
+    private readonly ITotdSyncService _totdSyncService;
 
     public TrackmaniaController(
         ITrackmaniaLiveClient live,
         ITrackmaniaCoreClient core,
         ITrackmaniaOAuthClient oauth,
-        TrackmaniaLiveService liveService,
-        IPreviousTotdService previousTotdService)
+        ITotdSyncService totdSyncService)
     {
         _live = live;
         _core = core;
         _oauth = oauth;
-        _liveService = liveService;
-        _previousTotdService = previousTotdService;
+        _totdSyncService = totdSyncService;
     }
     
     [HttpGet("totd-month")]
@@ -47,14 +44,11 @@ public class TrackmaniaController : ControllerBase
     [HttpGet("totd")]
     public async Task<IActionResult> GetTotdLeaderboard()
     {
-        var totd = await _previousTotdService.GetPreviousTotd();
-        if (totd is null)
+        var result = await _totdSyncService.SyncPreviousTotdAsync();
+        if (result is null)
         {
             return NotFound("Previous TOTD not found.");
         }
-
-        var result =
-            await _liveService.GetLeaderboard(totd.MapUid, onlyWorld: false);
 
         return Ok(result);
     }

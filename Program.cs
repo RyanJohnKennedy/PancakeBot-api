@@ -65,6 +65,7 @@ builder.Services.AddSingleton<ITrackmaniaAuthService, TrackmaniaAuthService>();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<TrackmaniaLiveService>();
 builder.Services.AddScoped<IPreviousTotdService, PreviousTotdService>();
+builder.Services.AddScoped<ITotdSyncService, TotdSyncService>();
 
 builder.Services.AddSingleton<TrackmaniaOAuthTokenProvider>();
 
@@ -82,7 +83,7 @@ builder.Services.AddHttpClient<ITrackmaniaCoreClient, TrackmaniaCoreClient>(c =>
 })
 .AddHttpMessageHandler(sp =>
     new TrackmaniaAuthHandler(
-        sp.GetRequiredService<TrackmaniaAuthService>(),
+        sp.GetRequiredService<ITrackmaniaAuthService>(),
         sp.GetRequiredService<IOptions<TrackmaniaOptions>>(),
         "NadeoServices"
     )
@@ -96,7 +97,7 @@ builder.Services.AddHttpClient<ITrackmaniaLiveClient, TrackmaniaLiveClient>(c =>
 })
 .AddHttpMessageHandler(sp =>
     new TrackmaniaAuthHandler(
-        sp.GetRequiredService<TrackmaniaAuthService>(),
+        sp.GetRequiredService<ITrackmaniaAuthService>(),
         sp.GetRequiredService<IOptions<TrackmaniaOptions>>(),
         "NadeoLiveServices"
     )

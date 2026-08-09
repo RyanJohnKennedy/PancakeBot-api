@@ -32,18 +32,15 @@ public class TrackmaniaOAuthClient : ITrackmaniaOAuthClient
             throw new ArgumentException("Maximum of 50 accountIds allowed.", nameof(accountIds));
 
         var token = await _oauthService.GetAccessTokenAsync();
-        Console.WriteLine($"Using access token: {(string.IsNullOrEmpty(token) ? "<empty>" : token + "...")}");
-
-        _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         var queryParams = accountIds
             .Select(id => new KeyValuePair<string, string?>("accountId[]", id));
 
         var url = new Uri(_http.BaseAddress!, "display-names");
         var fullUrl = QueryHelpers.AddQueryString(url.ToString(), queryParams);
-        Console.WriteLine($"Request URL: {fullUrl}");
-
-        var response = await _http.GetAsync(fullUrl);
+        using var request = new HttpRequestMessage(HttpMethod.Get, fullUrl);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var response = await _http.SendAsync(request);
         response.EnsureSuccessStatusCode();
 
         var json = await response.Content.ReadAsStringAsync();
