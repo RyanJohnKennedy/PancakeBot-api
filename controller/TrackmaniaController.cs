@@ -55,21 +55,22 @@ public class TrackmaniaController : ControllerBase
     [HttpGet("totd")]
     public async Task<IActionResult> GetTotdLeaderboard()
     {
-        var yesterday = DateOnly.FromDateTime(_timeProvider.GetUtcNow().UtcDateTime.Date.AddDays(-1));
+        var nowTimestamp = _timeProvider.GetUtcNow().ToUnixTimeSeconds();
         var map = await _db.TotdMaps
             .AsNoTracking()
-            .SingleOrDefaultAsync(totdMap => totdMap.TotdDate == yesterday);
+            .Where(totdMap => totdMap.EndTimestamp <= nowTimestamp)
+            .OrderByDescending(totdMap => totdMap.EndTimestamp)
+            .FirstOrDefaultAsync();
 
         if (map is null || !await _db.TotdResults.AnyAsync(totdResult => totdResult.MapUid == map.MapUid))
         {
             _logger.LogInformation(
-                "No stored TOTD results found for {TotdDate}; fetching and syncing from Trackmania.",
-                yesterday);
+                "No stored results found for the most recently completed TOTD; fetching and syncing from Trackmania.");
 
             var syncResult = await _totdSyncService.SyncPreviousTotdAsync();
             if (syncResult is null)
             {
-                _logger.LogWarning("Trackmania did not return a previous TOTD for {TotdDate}.", yesterday);
+                _logger.LogWarning("Trackmania did not return a completed TOTD.");
                 return NotFound("Previous TOTD not found.");
             }
 
@@ -81,7 +82,7 @@ public class TrackmaniaController : ControllerBase
         {
             _logger.LogInformation(
                 "Using stored TOTD results for {TotdDate} (map {MapUid}); no Trackmania request is needed.",
-                yesterday,
+                map.TotdDate,
                 map.MapUid);
         }
 

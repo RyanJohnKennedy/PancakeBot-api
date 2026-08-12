@@ -49,17 +49,14 @@ public class PreviousTotdService : IPreviousTotdService
             _logger.LogWarning("TOTD month response did not contain any months.");
             return null;
         }
-
-        // The campaign response can contain today's and future entries. Select the
-        // last map whose release was before the current UTC day, rather than relying
-        // on its position in a potentially delayed response.
-        var todayStart = _timeProvider.GetUtcNow().UtcDateTime.Date;
+        
+        var now = _timeProvider.GetUtcNow();
         var previousTotd = data.MonthList
             .Where(month => month.Days is { Count: > 0 })
             .SelectMany(month => month.Days)
             .Where(day => !string.IsNullOrWhiteSpace(day.MapUid))
-            .Where(day => ToUtcDateTime(day.StartTimestamp) < todayStart)
-            .OrderByDescending(day => ToUtcDateTime(day.StartTimestamp))
+            .Where(day => ToDateTimeOffset(day.EndTimestamp) <= now)
+            .OrderByDescending(day => ToDateTimeOffset(day.EndTimestamp))
             .FirstOrDefault();
 
         if (previousTotd is null)
@@ -96,10 +93,13 @@ public class PreviousTotdService : IPreviousTotdService
 
     private static DateTime ToUtcDateTime(long timestamp)
     {
-        // Nadeo currently sends Unix seconds. Supporting milliseconds makes the
-        // boundary robust when payload versions differ.
+        return ToDateTimeOffset(timestamp).UtcDateTime;
+    }
+
+    private static DateTimeOffset ToDateTimeOffset(long timestamp)
+    {
         return timestamp > 10_000_000_000
-            ? DateTimeOffset.FromUnixTimeMilliseconds(timestamp).UtcDateTime
-            : DateTimeOffset.FromUnixTimeSeconds(timestamp).UtcDateTime;
+            ? DateTimeOffset.FromUnixTimeMilliseconds(timestamp)
+            : DateTimeOffset.FromUnixTimeSeconds(timestamp);
     }
 }
