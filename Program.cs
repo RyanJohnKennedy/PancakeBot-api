@@ -66,6 +66,8 @@ builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<TrackmaniaLiveService>();
 builder.Services.AddScoped<IPreviousTotdService, PreviousTotdService>();
 builder.Services.AddScoped<ITotdSyncService, TotdSyncService>();
+builder.Services.AddScoped<ITotdLeaderboardService, TotdLeaderboardService>();
+builder.Services.AddScoped<ITotdMonthLeaderboardService, TotdMonthLeaderboardService>();
 
 builder.Services.AddSingleton<TrackmaniaOAuthTokenProvider>();
 

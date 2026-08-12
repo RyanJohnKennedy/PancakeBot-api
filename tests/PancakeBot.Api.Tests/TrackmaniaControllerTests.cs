@@ -40,9 +40,9 @@ public class TrackmaniaControllerTests
             new TotdResult { MapUid = "jul-31", AccountId = "bob", PointsAwarded = 99 });
         await db.SaveChangesAsync();
 
+        var timeProvider = new FixedTimeProvider(new DateTimeOffset(2026, 8, 12, 10, 0, 0, TimeSpan.Zero));
         var controller = new TrackmaniaController(
-            null!, null!, null!, null!, db,
-            new FixedTimeProvider(new DateTimeOffset(2026, 8, 12, 10, 0, 0, TimeSpan.Zero)),
+            null!, null!, null!, null!, new TotdMonthLeaderboardService(db, timeProvider),
             NullLogger<TrackmaniaController>.Instance);
 
         var actionResult = await controller.GetTotdMonthLeaderboard();
