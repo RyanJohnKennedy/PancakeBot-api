@@ -12,9 +12,11 @@ namespace PancakeBot.Api.Service;
 public interface ITotdSyncService
 {
     Task<TotdSyncResult?> SyncPreviousTotdAsync();
+    Task<TotdMonthSyncResult> SyncCurrentMonthCompletedTotdsAsync();
 }
 
 public sealed record TotdSyncResult(string MapUid, int ResultsUpserted, int PlayersUpserted);
+public sealed record TotdMonthSyncResult(int CompletedDaysFound, IReadOnlyList<TotdSyncResult> SyncedDays);
 
 /// <summary>Synchronizes the previous TOTD's leaderboard and participating players.</summary>
 public sealed class TotdSyncService : ITotdSyncService
@@ -52,6 +54,54 @@ public sealed class TotdSyncService : ITotdSyncService
         if (totd is null)
             return null;
 
+        return await SyncTotdAsync(totd);
+    }
+
+    public async Task<TotdMonthSyncResult> SyncCurrentMonthCompletedTotdsAsync()
+    {
+        var now = _timeProvider.GetUtcNow();
+        var currentMonth = DateOnly.FromDateTime(now.UtcDateTime);
+        var monthData = await _live.GetTotdMonth();
+
+        // The latest completed day is the same "previous TOTD" used by the /api/trackmania/totd endpoint.
+        // Work backwards from it, never touching the currently active track.
+        var completedDays = monthData?.MonthList
+            .SelectMany(month => month.Days)
+            .Where(day => !string.IsNullOrWhiteSpace(day.MapUid))
+            .Where(day => DateOnly.FromDateTime(ToUtcDateTime(day.StartTimestamp)).Year == currentMonth.Year
+                && DateOnly.FromDateTime(ToUtcDateTime(day.StartTimestamp)).Month == currentMonth.Month)
+            .Where(day => ToDateTimeOffset(day.EndTimestamp) <= now)
+            .OrderByDescending(day => day.StartTimestamp)
+            .ToList()
+            ?? [];
+
+        var completedMapUids = completedDays.Select(day => day.MapUid).ToArray();
+        var mapUidsWithStoredResults = (await _db.TotdResults
+            .Where(result => completedMapUids.Contains(result.MapUid))
+            .Select(result => result.MapUid)
+            .Distinct()
+            .ToListAsync())
+            .ToHashSet();
+        var unsyncedDays = completedDays
+            .Where(day => !mapUidsWithStoredResults.Contains(day.MapUid))
+            .ToList();
+
+        var syncedDays = new List<TotdSyncResult>(unsyncedDays.Count);
+        foreach (var day in unsyncedDays)
+            syncedDays.Add(await SyncTotdAsync(day));
+
+        _logger.LogInformation(
+            "Synchronized {SyncedDayCount} previously unsaved TOTDs out of {CompletedDayCount} completed TOTDs for {Year}-{Month:D2}.",
+            syncedDays.Count,
+            completedDays.Count,
+            currentMonth.Year,
+            currentMonth.Month);
+
+        return new TotdMonthSyncResult(completedDays.Count, syncedDays);
+    }
+
+    private async Task<TotdSyncResult> SyncTotdAsync(TotdDay totd)
+    {
         await EnsureTotdMapAsync(totd);
 
         var leaderboard = await _live.GetLeaderboard(
@@ -174,6 +224,10 @@ public sealed class TotdSyncService : ITotdSyncService
     private static DateTime ToUtcDateTime(long timestamp) => timestamp > 10_000_000_000
         ? DateTimeOffset.FromUnixTimeMilliseconds(timestamp).UtcDateTime
         : DateTimeOffset.FromUnixTimeSeconds(timestamp).UtcDateTime;
+
+    private static DateTimeOffset ToDateTimeOffset(long timestamp) => timestamp > 10_000_000_000
+        ? DateTimeOffset.FromUnixTimeMilliseconds(timestamp)
+        : DateTimeOffset.FromUnixTimeSeconds(timestamp);
 
     private static IEnumerable<(LeaderboardEntry Entry, LeaderboardTopZone TopZone)> FlattenEntries(LeaderboardResponse? leaderboard) =>
         leaderboard?.Tops
